@@ -20,11 +20,11 @@ beta = "L999,D290,L462,D773,L687,D706,L785,D219,R102,U307,L466,D166,R11,D712,L67
 #beta = "U7,R6,D4,L4"
 
 
-# SECOND TEST SET, RESULT DISTANCE IS 159, AT POINT NUMBER ??
+# SECOND TEST SET, RESULT DISTANCE IS 159, AT POINT NUMBER ?? MINIMUM STEPPING IS 610
 #alpha = "R75,D30,R83,U83,L12,D49,R71,U7,L72"
 #beta = "U62,R66,U55,R34,D71,R55,D58,R83"
 
-# THIRD TEST SET, RESULT DISTANCE IS 135, AT POINT NUMBER ??
+# THIRD TEST SET, RESULT DISTANCE IS 135, AT POINT NUMBER ?? MIN STEPPING IS 410
 #alpha = "R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51"
 #beta = "U98,R91,D20,R16,D67,R40,U7,R15,U6,R7"
 
@@ -233,12 +233,17 @@ for i in results:
     distance = abs(i[0])+abs(i[1])
     manhattan.append(distance)
 
-_ = manhattan.pop(0)
+#_ = manhattan.pop(0)
 #print("Distances are "+str(manhattan))
 
 #report min. manhattan distance
 
-minDistance = [manhattan[0], 0]
+if manhattan[0] == 0:
+    minDistance = [manhattan[1], 1]
+else:
+    minDistance = [manhattan[0], 0]
+
+#minDistance = [manhattan[0], 0]
 for i in range(0, len(manhattan)):
     if manhattan[i] < minDistance[0]:
         minDistance[0] = manhattan[i]
@@ -246,3 +251,81 @@ for i in range(0, len(manhattan)):
     elif manhattan[i] == minDistance[0] and not manhattan[i] == manhattan[0]: # Report if it has found two points with the same manhattan distance, unless it is the initial guess.
         print("Equal distances found! "+str([manhattan[i],i]))
 print("Minimum manhattan is "+str(minDistance)+"(Distance, index (results -1)")
+
+#### PART 2: FIND STEPS. ####
+'''
+defining a path as a set of vectors (lines between two cartesian points), as such
+
+alphapath = [[0,0],[0,5],[3,5]]
+
+for a path that goes 5 up and then 3 right ("U5,R3")
+
+let an intersection point with another wire have cartesian coordinates of [2,5]
+
+this point lies on the last leg of the alphapath: [0,5] -> [3,5]
+'''
+
+def getStep(path, point):
+    step = 0
+    #counter = 0
+    for i in range(0, len(path)-1):
+        startpoint = path[i]
+        endpoint = path[i+1]
+        if startpoint[0] != endpoint[0]: # x has changed, leg is parallel to x axis.
+            a = startpoint[0]
+            b = endpoint[0]
+            c = int((b-a)/abs(b-a))
+            
+            if (point[0] in range(a,b+c,c)) and (point[1] == startpoint[1]):
+                step += abs(point[0]-a)
+                #counter += 1
+                #print("counter = "+str(counter))
+                return step
+            else:
+                step += abs(b-a)
+                #counter += 1
+        
+        elif startpoint[1] != endpoint[1]: # y has changed, leg is parallel to y axis.
+            a = startpoint[1]
+            b = endpoint[1]
+            c = int((b-a)/abs(b-a))
+            
+            if (point[1] in range(a,b+c,c)) and (point[0] == startpoint[0]):
+                step += abs(point[1]-a)
+                #counter += 1
+                #print("counter = "+str(counter))
+                return step
+                
+            else:
+                step += abs(b-a)
+                #counter += 1
+
+    return step
+
+#print(results)
+
+stepper = []
+for i in results:
+    alphaStep = getStep(alphapath,i)
+    betaStep = getStep(betapath,i)
+    stepper.append(alphaStep+betaStep)
+
+#print(stepper)
+
+#report min. stepping distance
+#_ = stepper.pop(0) # remove step at point (0,0)
+
+# if both cables start parallel, the first intersection is not (0,0), this result wasn't filtered out until now.
+if stepper[0] == 0:
+    minStep = [stepper[1], 1]
+else:
+    minStep = [stepper[0], 0]
+
+
+for i in range(0, len(stepper)):
+    if stepper[i] < minStep[0]:
+        minStep[0] = stepper[i]
+        minStep[1] = i
+    elif stepper[i] == minStep[0] and not stepper[i] == stepper[0]: # Report if it has found two points with the same stepping count, unless it is the initial guess.
+        print("Equal stepping found! "+str([stepper[i],i]))
+print("Minimum stepping count is "+str(minStep)+"(steps, index (stepper -1)")
