@@ -1,15 +1,15 @@
 import sys,os
 
 # temporarily disable my own prints to quieten functions
-'''
+
 # Disable
-def block#print():
+def blockPrint():
     sys.stdout = open(os.devnull, 'w')
 
 # Restore
-def enable#print():
+def enablePrint():
     sys.stdout = sys.__stdout__
-'''
+
 
 # inputs
 alpha = "R995,U671,R852,U741,R347,U539,R324,U865,R839,U885,R924,D983,R865,D823,R457,U124,R807,U941,R900,U718,R896,D795,R714,D129,R465,U470,L625,U200,L707,U552,L447,D305,L351,D571,L346,D38,L609,U581,L98,D707,R535,D332,L23,D630,L66,U833,L699,D445,L981,D81,L627,U273,R226,D51,L177,D806,R459,D950,R627,U462,L382,D847,R335,D573,L902,D581,L375,D288,R26,U922,R710,D159,R481,U907,L852,U926,L905,D140,L581,U908,R158,D955,R349,U708,R196,D13,R628,D862,L899,U50,L56,D89,L506,U65,R664,D243,L701,D887,L552,U665,L674,U813,L433,U87,R951,D970,R914,D705,R79,U328,L107,D86,L307,U550,L872,U224,L595,D600,R442,D426,L139,U528,R680,U35,L951,D275,L78,U113,L509,U821,R150,U668,L981,U102,L632,D864,R636,D597,R385,U322,R464,U249,L286,D138,L993,U329,R874,D849,R6,D632,L751,U235,R817,D495,L152,D528,R872,D91,R973,D399,L14,D544,R20,U54,L793,U90,L756,D36,R668,D221,L286,D681,L901,U312,R290,D874,L155,U863,R35,D177,R900,D865,R250,D810,L448,D648,L358,U308,R986,D562,L112,D858,R77,D880,L12,U702,L987,D662,R771,U6,R643,U845,R54,U987,L994,D878,L934,U805,L85,D760,L775,D578,L557,U544,L522,U495,L678,D68,R615,U700,L415,U597,L964,D858,R504,U805,L392,U140,L721,D215,L842,U929,L30,U64,L748,D136,R274,D605,R863,U460,L354,U78,R705,D298,L456,U117,R308,D186,L707,D367,R824,U965,L162,D19,R950,D582,R911,D436,L165,U506,L186,D906,L69,U412,R810,U13,L350,U314,R192,U963,L143,D937,L685,D574,R434,D937,L365,U646,L741,U703,L66,U959,L103,U799,L480,U340,R981,U96,L675,U662,R536,U15,R171,U382,R396,D431,L922,D662,R365,D921,R915"
@@ -27,9 +27,6 @@ beta = "L999,D290,L462,D773,L687,D706,L785,D219,R102,U307,L466,D166,R11,D712,L67
 # THIRD TEST SET, RESULT DISTANCE IS 135, AT POINT NUMBER ??
 #alpha = "R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51"
 #beta = "U98,R91,D20,R16,D67,R40,U7,R15,U6,R7"
-
-#alpha = "R8,U5,L5,D3"
-#beta = "U7,R6,D4,L4"
 
 alpha = alpha.split(",")
 beta = beta.split(",")
@@ -59,7 +56,7 @@ Calculate their cab distance by assuming abs(x)+abs(y) (FUN FACT: Manhattan dist
 
 
 def direction2path(direction):
-    #block#print()
+    blockPrint()
     location = [0,0] # begins at zero
     path = [location]
     for i in range(0, len(direction)):
@@ -68,7 +65,7 @@ def direction2path(direction):
         deltaCoordinate = [0,0]
 
         # "controllerRange" is a +/-1 that determines the direction of the travel. Due to Range(x) using inclusive for the first parameter and exclusive for the second one, this needs to be adopted.
-        ##print("Processing movement "+str(direction[i][0]))
+        print("Processing movement "+str(direction[i][0]))
         controllerRange = 0
         if (direction[i][0]) == "U":
             deltaCoordinate[1] += int(direction[i][1:])
@@ -83,158 +80,62 @@ def direction2path(direction):
             deltaCoordinate[0] += - int(direction[i][1:])
             controllerRange = -1
         
-        #print("delta = "+str(deltaCoordinate))
-
+        print("delta = "+str(deltaCoordinate))
         # Apply transformation to last point on path
-        #print("Current path "+str(path))
-        current = [path[-1][0]+deltaCoordinate[0]]
-        current.append(path[-1][1]+deltaCoordinate[1])
-        #print("Endpoint is "+str(current))
-        # Append the ending point to the path
-        path.append(current)
+        leg = []
 
-   # enable#print()
+        #treat change in x
+        print("Current path "+str(path))
+        for k in range(path[-1][0]+controllerRange, path[-1][0]+deltaCoordinate[0]+controllerRange, controllerRange):
+            current = path[-1][1]
+            leg.append([k,current])
+            print("X jumping in "+str([k,current]))
+
+        #treat change in y
+        for k in range(path[-1][1]+controllerRange, path[-1][1]+deltaCoordinate[1]+controllerRange, controllerRange):
+            current = path[-1][0]
+            leg.append([current,k])
+            print("Y jumping in "+str([current,k]))
+        
+        print("Leg is "+str(leg))
+        for k in leg:
+            path.append(k)
+    enablePrint()
     return path
 
-def intersect(firstvect, secondvect):
-        # find whether two lines defined by two points intersect.
-        
-        # ASSUMPTIONS: at no part in either paths do they travel parallel through the same points.
-        # (continuous intersection)
-        # intersections only happen in 90 degree crossings.
 
-        # Skip calculations if vectors are parallel to one another.
-        if (
-            (firstvect[0][0] == firstvect[1][0] and     #PARALLEL IN X
-            secondvect[0][0] == secondvect[1][0]) or 
-            (firstvect[0][1] == firstvect[1][1] and     #PARALLEL IN Y
-            secondvect[0][1] == secondvect[1][1])
-            ):
-            #print("Vectors are parallel")
-            return "Parallel"
-        
-        # true if first vector moves parallel to x-axis and second parallel to y-axis
-        if firstvect[0][0] == firstvect[1][0]: 
-            #print("First vector changes on y")
-            # acknowledge the range of change in y direction
-            a = firstvect[0][1]
-            b = firstvect[1][1]
-            c = int((b-a)/abs(b-a))
-            firstmove = range(a,b+c,c)
-            '''
-            for i in firstmove:
-                #print(i)
-            '''
-            intersectPoint = ["null", "null"]
-            a = secondvect[0][1]
-            if a in firstmove:
-                intersectPoint[1] = a
-
-            ### Find if other index is within range of intersection
-            a = secondvect[0][0]
-            b = secondvect[1][0]
-            c = int((b-a)/abs(b-a))
-            secondmove = range(a,b+c,c)
-            
-            a = firstvect[0][0]
-            if a in secondmove:
-                intersectPoint[0] = a
-                
-            if intersectPoint[0] == "null" or intersectPoint[1] == "null":
-                ##print("Error!")
-                return "No intersection"
-            return intersectPoint
-            
-        # true if first vector moves parallel to y-axis and second parallel to x-axis
-        elif firstvect[0][1] == firstvect[1][1]:
-            #print("First vector changes on x")
-            # acknowledge the range of change in y direction
-            a = firstvect[0][0]
-            b = firstvect[1][0]
-            c = int((b-a)/abs(b-a))
-            firstmove = range(a,b+c,c)
-            '''
-            for i in firstmove:
-                #print(i)
-            '''
-            intersectPoint = ["null", "null"]
-            a = secondvect[0][0]
-            if a in firstmove:
-                intersectPoint[0] = a
-
-            ### Find if other index is within range of intersection
-            a = secondvect[0][1]
-            b = secondvect[1][1]
-            c = int((b-a)/abs(b-a))
-            secondmove = range(a,b+c,c)
-            
-            a = firstvect[0][1]
-            if a in secondmove:
-                #print("intersect = "+str(intersectPoint))
-                intersectPoint[1] = a
-                
-
-            if intersectPoint[0] == "null" or intersectPoint[1] == "null":
-                ##print("Error!")
-                return "No intersection"
-            return intersectPoint
-
-#############################################################################
-
-###print(alpha)
-##print("Maps to\n")
+print(alpha)
+print("Maps to\n")
 alphapath = direction2path(alpha)
-##print("alphapath "+str(alphapath))
+print("alphapath "+str(alphapath))
 
 
-##print(beta)
-##print("Maps to\n")
+print(beta)
+print("Maps to\n")
 betapath = direction2path(beta)
-##print("betapath "+str(betapath))
-'''
+print("betapath "+str(betapath))
+
 #find common points
 for i in range(0, len(alphapath)):
     type(alphapath[i][0]) == int
-    #print(i)
-'''
-##print("Now for everything...")
-results = []
-for i in range(0, len(alphapath)-1):
-    for k in range(0, len(betapath)-1):
-        selectionAlpha = [alphapath[i],alphapath[i+1]]
-        selectionBeta = [betapath[k],betapath[k+1]]
-        #print(selectionAlpha)
-        #print(selectionBeta)
-        
-        result = intersect(selectionAlpha,selectionBeta)
-        
-        # The function returns parallel encounters, non-intersections and intersections. (string, string, list respectively.)
-        if type(result) == list:
-            #print("passed result of "+str(result)+" from input "+str(selectionAlpha)+" and "+str(selectionBeta))
-            results.append(result)
-        
-        #print(result)
-        #print("next...")
-#print(results)
+    print(i)
 
 
-'''
+
 intersection = []
 for i in alphapath:
     for k in betapath:
         if i == k:
-            #print("Found intersection at "+str(k))
+            print("Found intersection at "+str(k))
             intersection.append(i)
 intersection.pop(0) # remove origin intersection from the list
-'''
+
 #find manhattan distance
 manhattan = []
-for i in results:
+for i in intersection:
     distance = abs(i[0])+abs(i[1])
     manhattan.append(distance)
-
-_ = manhattan.pop(0)
-#print("Distances are "+str(manhattan))
+print("Distances are "+str(manhattan))
 
 #report min. manhattan distance
 
@@ -245,4 +146,4 @@ for i in range(0, len(manhattan)):
         minDistance[1] = i
     elif manhattan[i] == minDistance[0] and not manhattan[i] == manhattan[0]: # Report if it has found two points with the same manhattan distance, unless it is the initial guess.
         print("Equal distances found! "+str([manhattan[i],i]))
-print("Minimum manhattan is "+str(minDistance)+"(Distance, index (results -1)")
+print("Minimum manhattan is "+str(minDistance)+"(Distance, index (intersection -1)")
