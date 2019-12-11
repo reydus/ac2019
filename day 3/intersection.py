@@ -1,4 +1,4 @@
-alpha = [[0,0],[0,4],[5,4]]#,[5,6],[2,6],[2,2]]
+alpha = [[0,0],[0,4],[5,4],[5,6],[2,6],[2,2]]
 #alpha = [alpha[1],alpha[2]]
 beta = [[0,0],[-1,0],[-1,1],[-2,1],[-2,3],[2,3],[2,6]]
 #beta = [beta[5],beta[6]]
@@ -65,8 +65,11 @@ def intersect(firstvect, secondvect):
             a = firstvect[0][0]
             b = firstvect[1][0]
             c = int((b-a)/abs(b-a))
-            firstmove = range(a,b,c)
+            firstmove = range(a,b+c,c)
             
+            for i in firstmove:
+                print(i)
+                
             intersectPoint = []
             a = secondvect[0][0]
             if a in firstmove:
@@ -80,6 +83,7 @@ def intersect(firstvect, secondvect):
             
             a = firstvect[0][1]
             if a in secondmove:
+                print("intersect = "+str(intersectPoint))
                 intersectPoint[1] = a
                 
             for j in intersectPoint:
@@ -102,7 +106,12 @@ for i in range(0, len(alpha)-1):
         print(selectionBeta)
         
         result = intersect(selectionAlpha,selectionBeta)
-        results.append(result)
+        
+        # The function returns parallel encounters, non-intersections and intersections. (string, string, list respectively.)
+        if type(result) == list:
+            results.append(result)
+        
         print(result)
         print("next...")
 print(results)
+#aaaaa
