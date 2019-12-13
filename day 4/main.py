@@ -19,32 +19,43 @@ Other than the range rule, the following are true:
 How many different passwords within the range given in your puzzle input meet these criteria?
 '''
 
-start = 264793
-end = 803935
+startNumber = 264793
+endNumber = 803935
 
-def doublelise(input):
-    input = str(input)
-    input[-1] = input[-2]
-    input = int(input)
-    return input
+def doubleFind(series):
+    filtered = []
+    for i in series:
+        i = str(i)
+        for k in range(0, len(i)-1):
+            if i[k] == i[k+1]:
+                filtered.append(int(i))
+                break
+    return filtered
 
-def decreaser(input):
-    input = str(input)
-    for i in range(0, len(input)-1):
-        if int(input[i]) < int(input[i+1])
-            input[i+1] = input[i]
-    input = int(input)
-    return input
+def decreased(series):
+    filtered = []
+    for i in series:
+        i = str(i)
+        stopFlag = 0
+        for k in range(0, len(i)-1):
+            if i[k] > i[k+1]:
+                #print(i+" is not an option!")
+                stopFlag = 1
+                break
+        if stopFlag == 0:
+            filtered.append(int(i))
+    return filtered
 
-start = str(start)
-
-
-marker = 0
-for i in range(0, len(start)-1):
+if __name__ == "__main__":
+    combinations = list(range(0, 999999))
+    ranged = []
+    for i in combinations:
+        if i >= startNumber and i <= endNumber:
+            ranged.append(i)
     
-    if start[i] == start[i+1]:
-        marker = 1
+    doubles = doubleFind(ranged)
+    decreas = decreased(doubles)
+
+    print("possible combinations are: "+str(decreas)+"\n")
+    print("n = "+str(len(decreas)))
     
-
-
-        
