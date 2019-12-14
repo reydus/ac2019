@@ -46,7 +46,70 @@ def decreased(series):
             filtered.append(int(i))
     return filtered
 
+def noMoreDoubles(series):
+    filtered = []
+    for i in series:
+        i = str(i)
+        for k in range(0, len(i)-1):
+            if k == 0:
+                if i[k] == i[k+1] and not i[k] == i[k+2]:
+                    filtered.append(int(i))
+                    break
+            elif k == len(i)-1:
+                if i[k] == i[k-1] and not i[k] == i[k-2]:
+                    filtered.append(int(i))
+                    break
+            else:
+                front, back = 0, 0
+                if i[k] == i[k+1]:
+                    if k <= len(i)-3:
+                        if i[k] != i[k+2]:
+                            front = 1
+                    else:
+                        front = 1
+                if i[k] == i[k-1]:
+                    if k >= 2:
+                        if i[k] != i[k-2]:
+                            back = 1
+                    else:
+                        back = 1
+                if front+back == 1:
+                    filtered.append(int(i))
+                    break
+    return filtered
+'''
+        back, front = 0, 0
+        for k in range(1, len(i)-1):
+            if i[k] == i[k-1]:
+                back = 1
+            if i[k] == i[k+1]:    
+                front = 1
+            if back+front == 1:
+                filtered.append(int(i))
+                break
+                   ''' 
+
+'''
+    for i in series:
+        i = str(i)
+        couples = []
+        passed = 0
+        for k in range(0, len(i)-1):
+            if i[k] == i[k+1]:          # check if the next digit is the same (couple)
+                if k <= len(i)-3:       # is there enough space leftover for a triplet?
+                    if i[k] != i[k+2] and i[k-1] != i[k]:   # is that space taken by a triplet indeed? 
+                        passed = 1
+                elif k > 0:             # check if there is space for a similar digit behind
+                    if i[k] != i[k-1]:  # is it identical to it?
+                        passed = 1
+        if passed == 1 and not (i[k-1] == i[k] and i[k] == i[k+1]):
+            filtered.append(int(i))
+            passed = 0
+    '''
+
+
 if __name__ == "__main__":
+    print(noMoreDoubles([112233,123444,111122]))
     combinations = list(range(0, 999999))
     ranged = []
     for i in combinations:
@@ -55,7 +118,13 @@ if __name__ == "__main__":
     
     doubles = doubleFind(ranged)
     decreas = decreased(doubles)
+    print("Between "+str(startNumber)+" and "+str(endNumber))
+    print("possible combinations are: "+str(decreas[0:5])+"..."+str(decreas[-5:])+"\n") # truncate.
+    print("n = "+str(len(decreas))) # no. of possible combinations
+    
+    print("Part 2...\n")
 
-    print("possible combinations are: "+str(decreas)+"\n")
-    print("n = "+str(len(decreas)))
+    noDoubleDoubles = noMoreDoubles(decreas)
+    print("possible combinations are: "+str(noDoubleDoubles[0:5])+"..."+str(noDoubleDoubles[-5:])+"\n") # truncate.
+    print("n = "+str(len(noDoubleDoubles))) # no. of possible combinations
     
