@@ -1,4 +1,8 @@
-
+150 ORE => 3 VPVL
+7 VPVL, 2 RAM => 1 FUEL
+2 R, 3 AM => 3 RAM
+200 ORE => 5 R
+100 ORE = 2 AM
 
 ######
 157 ORE => 5 NZVS

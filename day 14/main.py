@@ -40,26 +40,28 @@ def compositeThruReact(reactions, material, no, inventory, depth, wastebin):    
             noReactions = math.ceil(no/reactions[material]["yields"])
             print(spacing + "Using "+str(needs["ORE"] * noReactions)+" ORE to make "+str(reactions[material]["yields"] * noReactions)+" "+str(material))
             surplus = reactions[material]["yields"] *noReactions - no
-            if material in wastebin:
-                wastebin[material] += surplus
-            else:
-                wastebin[material] = surplus
+            if surplus != 0:
+                if material in wastebin:
+                    wastebin[material] += surplus
+                else:
+                    wastebin[material] = surplus
 
             if material in inventory:
-                inventory[material] += no
+                inventory[material] += reactions[material]["yields"] *noReactions
 
             else:
-                inventory[material] = no
+                inventory[material] = reactions[material]["yields"] *noReactions
 
         else:
             noReactions = math.ceil(no/reactions[material]["yields"])
-            print(spacing + "Using "+str(needs[k]*noReactions)+" "+k+" to make "+str(reactions[material]["yields"]*noReactions)+" "+str(material))
+            print(spacing + "Using "+str(needs[k]*noReactions)+" "+k+" to make "+str(reactions[material]["yields"])+" "+str(material))
             surplus = reactions[material]["yields"]*noReactions - no
             
-            if k in wastebin:
-                wastebin[material] += surplus
-            else:
-                wastebin[material] = surplus
+            if surplus != 0:
+                if material in wastebin:
+                    wastebin[material] += surplus
+                else:
+                    wastebin[material] = surplus
             depth += 1
 
             inventory, wastebin = compositeThruReact(reactions, k, needs[k]*math.ceil(no/reactions[material]["yields"]), inventory, depth, wastebin)
@@ -82,7 +84,57 @@ def sumOre(reactions, inventory, wastebin):
         sum += maximumProduct
     return sum, wastebin
 
+def reclaim(wastebin,reactions):
+    passer = 1
+    byproducts = {}
 
+    while passer == 1:
+        if byproducts != {}:
+            for i in byproducts:
+                if i in wastebin:
+                    wastebin[i] += byproducts[i]
+                else:
+                    wastebin[i] = byproducts[i]
+            byproducts = {}
+        passer = 0
+        for i in wastebin:
+            if reactions[i]["input"].keys() == {"ORE":0}.keys():
+                print("Tried breaking down "+i+" but it is already prime.")
+            else:
+                if reactions[i]["yields"] > wastebin[i]:
+                    print("Tried breaking down "+i+" but the reverse-reaction isn't feasible with this amount.")
+                elif reactions[i]["yields"] <= wastebin[i]:
+                    noReactions = wastebin[i]//reactions[i]["yields"]
+                    print("Broke down "+i+" from "+str(wastebin[i])+" to "+str(wastebin[i] - (noReactions * reactions[i]["yields"])))
+                    passer = 1
+                    wastebin[i] -= noReactions * reactions[i]["yields"]
+                    for k in reactions[i]["input"]:
+                        if k in byproducts:
+                            byproducts[k] += reactions[i]["input"][k] * noReactions
+                        else:
+                            byproducts[k] = reactions[i]["input"][k] * noReactions
+    
+
+
+    oreReclaimed = 0
+    for i in wastebin:
+        if wastebin[i] >= reactions[i]["yields"]:
+            noReactions = wastebin[i]//reactions[i]["yields"]
+            print(wastebin)
+            print(i)
+            oreReclaimed += reactions[i]["input"]["ORE"] * noReactions
+            print("Reclaimed "+str(reactions[i]["input"]["ORE"] * noReactions)+" ORE from "+str(reactions[i]["yields"] * noReactions)+" "+i)
+            wastebin[i] -= reactions[i]["yields"] * noReactions
+        
+    dellist =[]
+    for i in wastebin: # prune waste with 0 items
+        if wastebin[i] == 0:
+            dellist.append(i)
+    for i in dellist:
+        print("Pruning "+str(i))
+        del wastebin[i]
+
+    return wastebin, oreReclaimed
 
 def main():
     reactions = processInput()
@@ -90,8 +142,8 @@ def main():
     inventory = {}
     wastebin = {}
     inventory, wastebin = compositeThruReact(reactions, "FUEL", 1, inventory, 0, wastebin)
-    print(sumOre(reactions, inventory,wastebin))
-    print(wastebin)
+    wastebin, moreOre = reclaim(wastebin,reactions)
+    
 if __name__ == "__main__":
     main()
 
