@@ -37,15 +37,32 @@ def compositeThruReact(reactions, material, no, inventory, depth, wastebin):    
     spacing = "".join(spacing)
     for k in needs:
         if k == "ORE":
-            print(spacing + "Using "+str(needs["ORE"] * math.ceil(no/reactions[material]["yields"]))+" ORE to make "+str(no)+" "+str(material))
+            noReactions = math.ceil(no/reactions[material]["yields"])
+            print(spacing + "Using "+str(needs["ORE"] * noReactions)+" ORE to make "+str(reactions[material]["yields"] * noReactions)+" "+str(material))
+            surplus = reactions[material]["yields"] *noReactions - no
+            if material in wastebin:
+                wastebin[material] += surplus
+            else:
+                wastebin[material] = surplus
+
             if material in inventory:
                 inventory[material] += no
+
             else:
                 inventory[material] = no
+
         else:
-            print(spacing + "Using "+str(needs[k]*math.ceil(no/reactions[material]["yields"]))+" "+k+" to make "+str(no)+" "+str(material))
+            noReactions = math.ceil(no/reactions[material]["yields"])
+            print(spacing + "Using "+str(needs[k]*noReactions)+" "+k+" to make "+str(reactions[material]["yields"]*noReactions)+" "+str(material))
+            surplus = reactions[material]["yields"]*noReactions - no
+            
+            if k in wastebin:
+                wastebin[material] += surplus
+            else:
+                wastebin[material] = surplus
             depth += 1
-            inventory = compositeThruReact(reactions, k, needs[k]*math.ceil(no/reactions[material]["yields"]), inventory, depth, wastebin)
+
+            inventory, wastebin = compositeThruReact(reactions, k, needs[k]*math.ceil(no/reactions[material]["yields"]), inventory, depth, wastebin)
 
     
     return inventory, wastebin
@@ -74,7 +91,7 @@ def main():
     wastebin = {}
     inventory, wastebin = compositeThruReact(reactions, "FUEL", 1, inventory, 0, wastebin)
     print(sumOre(reactions, inventory,wastebin))
-
+    print(wastebin)
 if __name__ == "__main__":
     main()
 
