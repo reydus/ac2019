@@ -7,8 +7,6 @@ def processInput():
             reactions = reactions.split("\n")
     react = {}
     for i in reactions:
-        #react = {}
-        #react[reactions[-1]] = {"no": reactions[-2], "input"}
         i= i.split()
         react[i[-1]] = {"yields": int(i[-2]), "input":0}
         inputt = i[:]   # makes sure that Python doesn't just reference the same object i points at
@@ -16,7 +14,6 @@ def processInput():
         inputt.pop(-1)
         inputt.pop(-1)
         outed = {}
-        #mix = i.split
         for k in range(0, len(inputt)):
             try:
                 int(inputt[k])
@@ -30,35 +27,43 @@ def processInput():
         react[i[-1]]["input"] = outed
     return react
                 
-def compositeThruReact(reactions, material, no, inventory):        # material will probably be "FUEL"
+def compositeThruReact(reactions, material, no, inventory, depth, wastebin):        # material will probably be "FUEL"
     getOutput = reactions[material]
     fuelNo = int(getOutput["yields"])
     needs = getOutput["input"]
-    #for k in needs:
-    #    needs[k] *= math.ceil(inventory[k]/reactions[k]["yields"])
     oreCount = 0
+    spacing = ["|"] * (depth-1)
+    spacing.append("└")
+    spacing = "".join(spacing)
     for k in needs:
-        #if k.lower() in ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']:
         if k == "ORE":
-            #print(aaa)
+            print(spacing + "Using "+str(needs["ORE"] * math.ceil(no/reactions[material]["yields"]))+" ORE to make "+str(no)+" "+str(material))
             if material in inventory:
                 inventory[material] += no
             else:
                 inventory[material] = no
         else:
-            inventory = compositeThruReact(reactions, k, needs[k]*math.ceil(no/reactions[material]["yields"]), inventory)
+            print(spacing + "Using "+str(needs[k]*math.ceil(no/reactions[material]["yields"]))+" "+k+" to make "+str(no)+" "+str(material))
+            depth += 1
+            inventory = compositeThruReact(reactions, k, needs[k]*math.ceil(no/reactions[material]["yields"]), inventory, depth, wastebin)
 
     
-    return inventory
+    return inventory, wastebin
     
-def sumOre(reactions, inventory):
+def sumOre(reactions, inventory, wastebin):
     sum = 0
     for prime in inventory:
         oreProduced = reactions[prime]["input"]["ORE"]
         noReactions = math.ceil(inventory[prime]/reactions[prime]["yields"])
+        surplus = noReactions * reactions[prime]["yields"]
+        if prime in wastebin:
+            wastebin[prime] += surplus
+        else:
+            wastebin[prime] = surplus
+
         maximumProduct = noReactions * oreProduced
         sum += maximumProduct
-    return sum
+    return sum, wastebin
 
 
 
@@ -66,8 +71,10 @@ def main():
     reactions = processInput()
     print(reactions)
     inventory = {}
-    print(compositeThruReact(reactions, "FUEL", 1, inventory))
-    print(sumOre(reactions, inventory))
+    wastebin = {}
+    inventory, wastebin = compositeThruReact(reactions, "FUEL", 1, inventory, 0, wastebin)
+    print(sumOre(reactions, inventory,wastebin))
 
 if __name__ == "__main__":
     main()
+
