@@ -1,6 +1,8 @@
 import math
 
 
+wastebin = {}
+orecount = 0
 def processInput():
     with open("day 14\input.txt") as file:
             reactions = file.read()
@@ -27,63 +29,25 @@ def processInput():
         react[i[-1]]["input"] = outed
     return react
                 
-def compositeThruReact(reactions, material, no, inventory, depth, wastebin):        # material will probably be "FUEL"
-    getOutput = reactions[material]
-    fuelNo = int(getOutput["yields"])
-    needs = getOutput["input"]
-    oreCount = 0
-    spacing = ["|"] * (depth-1)
-    spacing.append("└")
-    spacing = "".join(spacing)
-    for k in needs:
-        if k == "ORE":
-            noReactions = math.ceil(no/reactions[material]["yields"])
-            if "ORE" in inventory:
 
-                inventory["ORE"] += reactions[material]["input"]["ORE"]*noReactions
-                #inventory[material] += no #reactions[material]["yields"] *noReactions
+def processReactions(wastebin, reactions, material, no):
+    global orecount
+    for i in reactions[material]["input"]:
+        needed = reactions[material]["input"][i] * no
+        if i != "ORE":
+            noReactions = math.ceil(needed/(reactions[i]["yields"]))
+            surplus = (reactions[i]["yields"])*noReactions - needed
 
-            else:
-                inventory["ORE"] = reactions[material]["input"]["ORE"]*noReactions #reactions[material]["yields"] *noReactions
-            surplus = reactions[material]["yields"]*noReactions - no
             if surplus != 0:
-                if material in wastebin:
-                    wastebin[material] += surplus
+                if i in wastebin:
+                    wastebin[i] += surplus
                 else:
-                    wastebin[material] = surplus
-        else:
-            noReactions = math.ceil(no/reactions[material]["yields"])
-            print(spacing + "Using "+str("??")+" "+k+" to make "+str(no)+" "+str(material))
-            surplus = reactions[material]["yields"]*noReactions - no
+                    wastebin[i] = surplus
             
-            if surplus != 0:
-                if material in wastebin:
-                    wastebin[material] += surplus
-                else:
-                    wastebin[material] = surplus
-            depth += 1
-
-            inventory, wastebin = compositeThruReact(reactions, k, needs[k]*math.ceil(no/reactions[material]["yields"]), inventory, depth, wastebin)
-
-    
-    return inventory, wastebin
-    
-def sumOre(reactions, inventory, wastebin):
-    sum = 0
-    for prime in inventory:
-        oreProduced = reactions[prime]["input"]["ORE"]
-        noReactions = math.ceil(inventory[prime]/reactions[prime]["yields"])
-        surplus = noReactions * reactions[prime]["yields"]
-        '''
-        if prime in wastebin:
-            wastebin[prime] += surplus
+            processReactions(wastebin, reactions, i, noReactions)
         else:
-            wastebin[prime] = surplus
-'''
-        maximumProduct = noReactions * oreProduced
-        sum += maximumProduct
-    return sum, wastebin
-
+            orecount += needed
+    return wastebin
 def reclaim(wastebin,reactions):
     passer = 1
     byproducts = {}
@@ -136,22 +100,21 @@ def reclaim(wastebin,reactions):
 
     return wastebin, oreReclaimed
 
-def main():
-    reactions = processInput()
-    print(reactions)
-    inventory = {}
-    wastebin = {}
-    inventory, wastebin = compositeThruReact(reactions, "FUEL", 1, inventory, 0, wastebin)
-    total, wastebin = sumOre(reactions, inventory, wastebin)
-    print("First wastebin is "+str(wastebin))
-    wastebin, oreReclaimed = reclaim(wastebin,reactions)
+reactions = processInput()
+wastebin = processReactions(wastebin,reactions,"FUEL",1)
+print(wastebin)
+print(orecount)
 
-    print("managed to save "+str(oreReclaimed)+ " ORE")
-    print(total)
-    print(wastebin)
+wastebin, oreReclaimed = reclaim(wastebin,reactions)
+print(oreReclaimed)
+print(".")
+total = orecount-oreReclaimed
+print("Total "+str(total))
 
-    #wastebin, moreOre = reclaim(wastebin,reactions)
-    
-if __name__ == "__main__":
-    main()
+#initialGuess = 1000000000000//total
+
+#multiplier = 50 # the value is within 50% of the original value.
+
+
+
 
