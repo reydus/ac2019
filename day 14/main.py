@@ -37,6 +37,7 @@ def compositeThruReact(reactions, material, no, inventory, depth, wastebin):    
     spacing = "".join(spacing)
     for k in needs:
         if k == "ORE":
+            '''
             noReactions = math.ceil(no/reactions[material]["yields"])
             print(spacing + "Using "+str(needs["ORE"] * noReactions)+" ORE to make "+str(reactions[material]["yields"] * noReactions)+" "+str(material))
             surplus = reactions[material]["yields"] *noReactions - no
@@ -45,16 +46,16 @@ def compositeThruReact(reactions, material, no, inventory, depth, wastebin):    
                     wastebin[material] += surplus
                 else:
                     wastebin[material] = surplus
-
+            '''
             if material in inventory:
-                inventory[material] += reactions[material]["yields"] *noReactions
+                inventory[material] += no #reactions[material]["yields"] *noReactions
 
             else:
-                inventory[material] = reactions[material]["yields"] *noReactions
-
+                inventory[material] = no #reactions[material]["yields"] *noReactions
+            
         else:
             noReactions = math.ceil(no/reactions[material]["yields"])
-            print(spacing + "Using "+str(needs[k]*noReactions)+" "+k+" to make "+str(reactions[material]["yields"])+" "+str(material))
+            print(spacing + "Using "+str(needs[k]*noReactions)+" "+k+" to make "+str(no)+" "+str(material))
             surplus = reactions[material]["yields"]*noReactions - no
             
             if surplus != 0:
@@ -75,11 +76,12 @@ def sumOre(reactions, inventory, wastebin):
         oreProduced = reactions[prime]["input"]["ORE"]
         noReactions = math.ceil(inventory[prime]/reactions[prime]["yields"])
         surplus = noReactions * reactions[prime]["yields"]
+        '''
         if prime in wastebin:
             wastebin[prime] += surplus
         else:
             wastebin[prime] = surplus
-
+'''
         maximumProduct = noReactions * oreProduced
         sum += maximumProduct
     return sum, wastebin
@@ -142,7 +144,13 @@ def main():
     inventory = {}
     wastebin = {}
     inventory, wastebin = compositeThruReact(reactions, "FUEL", 1, inventory, 0, wastebin)
-    wastebin, moreOre = reclaim(wastebin,reactions)
+    total, wastebin = sumOre(reactions, inventory, wastebin)
+    wastebin, oreReclaimed = reclaim(wastebin,reactions)
+    print("managed to save "+str(oreReclaimed)+ " ORE")
+    print(total)
+    print(wastebin)
+
+    #wastebin, moreOre = reclaim(wastebin,reactions)
     
 if __name__ == "__main__":
     main()
