@@ -27,63 +27,24 @@ def processInput():
         react[i[-1]]["input"] = outed
     return react
                 
-def compositeThruReact(reactions, material, no, inventory, depth, wastebin):        # material will probably be "FUEL"
-    getOutput = reactions[material]
-    fuelNo = int(getOutput["yields"])
-    needs = getOutput["input"]
-    oreCount = 0
-    spacing = ["|"] * (depth-1)
-    spacing.append("└")
-    spacing = "".join(spacing)
-    for k in needs:
-        if k == "ORE":
-            noReactions = math.ceil(no/reactions[material]["yields"])
-            if "ORE" in inventory:
 
-                inventory["ORE"] += reactions[material]["input"]["ORE"]*noReactions
-                #inventory[material] += no #reactions[material]["yields"] *noReactions
+def processReactions(wastebin, reactions, material, no,orecount):
+    for i in reactions[material]["input"]:
+        needed = reactions[material]["input"][i] * no
+        if i != "ORE":
+            noReactions = math.ceil(needed/(reactions[i]["yields"]))
+            surplus = (reactions[i]["yields"])*noReactions - needed
 
-            else:
-                inventory["ORE"] = reactions[material]["input"]["ORE"]*noReactions #reactions[material]["yields"] *noReactions
-            surplus = reactions[material]["yields"]*noReactions - no
             if surplus != 0:
-                if material in wastebin:
-                    wastebin[material] += surplus
+                if i in wastebin:
+                    wastebin[i] += surplus
                 else:
-                    wastebin[material] = surplus
-        else:
-            noReactions = math.ceil(no/reactions[material]["yields"])
-            print(spacing + "Using "+str("??")+" "+k+" to make "+str(no)+" "+str(material))
-            surplus = reactions[material]["yields"]*noReactions - no
+                    wastebin[i] = surplus
             
-            if surplus != 0:
-                if material in wastebin:
-                    wastebin[material] += surplus
-                else:
-                    wastebin[material] = surplus
-            depth += 1
-
-            inventory, wastebin = compositeThruReact(reactions, k, needs[k]*math.ceil(no/reactions[material]["yields"]), inventory, depth, wastebin)
-
-    
-    return inventory, wastebin
-    
-def sumOre(reactions, inventory, wastebin):
-    sum = 0
-    for prime in inventory:
-        oreProduced = reactions[prime]["input"]["ORE"]
-        noReactions = math.ceil(inventory[prime]/reactions[prime]["yields"])
-        surplus = noReactions * reactions[prime]["yields"]
-        '''
-        if prime in wastebin:
-            wastebin[prime] += surplus
+            wastebin, orecount = processReactions(wastebin, reactions, i, noReactions,orecount)
         else:
-            wastebin[prime] = surplus
-'''
-        maximumProduct = noReactions * oreProduced
-        sum += maximumProduct
-    return sum, wastebin
-
+            orecount += needed
+    return wastebin, orecount
 def reclaim(wastebin,reactions):
     passer = 1
     byproducts = {}
@@ -99,13 +60,15 @@ def reclaim(wastebin,reactions):
         passer = 0
         for i in wastebin:
             if reactions[i]["input"].keys() == {"ORE":0}.keys():
-                print("Tried breaking down "+i+" but it is already prime.")
+                pass
+                #print("Tried breaking down "+i+" but it is already prime.")
             else:
                 if reactions[i]["yields"] > wastebin[i]:
-                    print("Tried breaking down "+i+" but the reverse-reaction isn't feasible with this amount.")
+                    pass
+                    #print("Tried breaking down "+i+" but the reverse-reaction isn't feasible with this amount.")
                 elif reactions[i]["yields"] <= wastebin[i]:
                     noReactions = wastebin[i]//reactions[i]["yields"]
-                    print("Broke down "+i+" from "+str(wastebin[i])+" to "+str(wastebin[i] - (noReactions * reactions[i]["yields"])))
+                    #print("Broke down "+i+" from "+str(wastebin[i])+" to "+str(wastebin[i] - (noReactions * reactions[i]["yields"])))
                     passer = 1
                     wastebin[i] -= noReactions * reactions[i]["yields"]
                     for k in reactions[i]["input"]:
@@ -120,10 +83,10 @@ def reclaim(wastebin,reactions):
     for i in wastebin:
         if wastebin[i] >= reactions[i]["yields"]:
             noReactions = wastebin[i]//reactions[i]["yields"]
-            print(wastebin)
-            print(i)
+            #print(wastebin)
+            #print(i)
             oreReclaimed += reactions[i]["input"]["ORE"] * noReactions
-            print("Reclaimed "+str(reactions[i]["input"]["ORE"] * noReactions)+" ORE from "+str(reactions[i]["yields"] * noReactions)+" "+i)
+            #print("Reclaimed "+str(reactions[i]["input"]["ORE"] * noReactions)+" ORE from "+str(reactions[i]["yields"] * noReactions)+" "+i)
             wastebin[i] -= reactions[i]["yields"] * noReactions
         
     dellist =[]
@@ -136,22 +99,41 @@ def reclaim(wastebin,reactions):
 
     return wastebin, oreReclaimed
 
-def main():
-    reactions = processInput()
-    print(reactions)
-    inventory = {}
+def runEverything(number):
     wastebin = {}
-    inventory, wastebin = compositeThruReact(reactions, "FUEL", 1, inventory, 0, wastebin)
-    total, wastebin = sumOre(reactions, inventory, wastebin)
-    print("First wastebin is "+str(wastebin))
+    reactions = processInput()
+    orecount = 0
+    wastebin,orecount = processReactions(wastebin,reactions,"FUEL",number,orecount)
     wastebin, oreReclaimed = reclaim(wastebin,reactions)
+    total = orecount-oreReclaimed
+    return total
 
-    print("managed to save "+str(oreReclaimed)+ " ORE")
-    print(total)
-    print(wastebin)
+total = runEverything(1)
 
-    #wastebin, moreOre = reclaim(wastebin,reactions)
-    
-if __name__ == "__main__":
-    main()
+print("Total "+str(total))
+
+trillion = 1000000000000
+initialGuess = trillion//total
+past = initialGuess*1.00
+multiplier = 0.5
+difference = 2
+while difference > 1:
+    total = runEverything(initialGuess)
+    if total > trillion:
+        multiplier *= multiplier
+        past = initialGuess*1.00
+        initialGuess *= multiplier
+        difference = past/initialGuess
+        print(initialGuess)
+        print(multiplier)
+    elif total < trillion:
+        past = initialGuess*1.00
+        initialGuess *= (1+multiplier)
+        difference = past/initialGuess
+        print(initialGuess)
+        print(multiplier)
+print(initialGuess)
+#TODO: Difference is having problems due to var mutating when pointing at the same object?
+
+
 
