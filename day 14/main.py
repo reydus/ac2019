@@ -1,8 +1,7 @@
 import math
 
-
 def processInput():
-    with open("day 14\input.txt") as file:
+    with open("day 14\\input.txt") as file:
             reactions = file.read()
             reactions = reactions.split("\n")
     react = {}
@@ -108,32 +107,48 @@ def runEverything(number):
     total = orecount-oreReclaimed
     return total
 
-total = runEverything(1)
+def convergeAnswer(oreCapacity, initialGuess=5000000):
+    totalA = runEverything(initialGuess)
+    if totalA > oreCapacity:
+        up = initialGuess
+        bGuess = (initialGuess*0.5)//1
+        totalB = runEverything(bGuess)
+        while totalB > oreCapacity:
+            bGuess = (initialGuess*0.5)//1
+            totalB = runEverything(bGuess)
+        down = bGuess
+        print("Point A is "+str(initialGuess)+" (upper limit) Point B is "+str(bGuess)+" (bottom limit)")
+    elif totalA < oreCapacity:
+        down = initialGuess
+        bGuess = (initialGuess*1.5)//1
+        totalB = runEverything(bGuess)
+        while totalB < oreCapacity:
+            bGuess = (initialGuess*1.5)//1
+            totalB = runEverything(bGuess)
+        up = bGuess
+        print("Point A is "+str(initialGuess)+" (bottom limit) Point B is "+str(bGuess)+" (upper limit)")
 
-print("Total "+str(total))
+    # iterative that lower/raises points to narrow down to answer, yields a value that gives higher than a trillion, and a value just lower than a trillion.
+    while True:
+        newPoint = (up-down)//2
+        # lift bottom point up, is it out-of-range?
+        if runEverything(down+newPoint) < oreCapacity:
+            down += newPoint
+        # lower upper point down, is it out-of-range?
+        elif runEverything(up-newPoint) > oreCapacity:
+            up -= newPoint
+        if newPoint == 1:
+            print("Converged at (up, down) = FUEL("+str(up)+", "+str(down)+") which yields ORE("+str(runEverything(up))+", "+str(runEverything(down))+")")
+            return down
 
-trillion = 1000000000000
-initialGuess = trillion//total
-past = initialGuess*1.00
-multiplier = 0.5
-difference = 2
-while difference > 1:
-    total = runEverything(initialGuess)
-    if total > trillion:
-        multiplier *= multiplier
-        past = initialGuess*1.00
-        initialGuess *= multiplier
-        difference = past/initialGuess
-        print(initialGuess)
-        print(multiplier)
-    elif total < trillion:
-        past = initialGuess*1.00
-        initialGuess *= (1+multiplier)
-        difference = past/initialGuess
-        print(initialGuess)
-        print(multiplier)
-print(initialGuess)
-#TODO: Difference is having problems due to var mutating when pointing at the same object?
+def main():
+    total = runEverything(1)        # How much ore for 1 fuel
+    print("Total "+str(total))
 
+    trillion = 1000000000000        
+    initialGuess = trillion//total      # If <<total>> ore gives 1 fuel, then trillion//ore would certainly be closer to the right answer? (allowance for wastage and opportunities)
 
+    convergeAnswer(trillion, initialGuess)
 
+if __name__ == "__main__":
+    main()
